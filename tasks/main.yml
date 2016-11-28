@@ -1,0 +1,9 @@
+---
+# tasks file for lxd
+- include: install.yml
+  tags:
+    - "install"
+
+- include: configure.yml
+  tags:
+    - "configure"

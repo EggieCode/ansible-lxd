@@ -1,0 +1,40 @@
+---
+#- name: Exec lxd init
+#  shell: "lxd init --auto --network-address='{{ lxd_api_address }}' --network-port={{ lxd_api_port }} --storage-backend=dir --trust-password='{{ lxd_api_password }}' -"
+
+- name: disable and stop lxd-bridge
+  systemd: state=stopped name=lxd-bridge enabled=false
+
+- name: disable and stop lxc-net
+  systemd: state=stopped name=lxc-net enabled=false
+
+- name: disable lxd-bridge in config
+  lineinfile: 'dest=/etc/default/lxd-bridge regexp=^USE_LXD_BRIDGE line=USE_LXD_BRIDGE="false"'
+
+- name: setting default profile
+  lxd_profile:
+    name: default
+    state: present
+    config: {}
+    devices:
+      eth0:
+        nictype: bridged
+        parent: virbr0
+        type: nic
+
+- name: Check if interfaces.d is enabled
+  lineinfile: 
+    dest: /etc/network/interfaces
+    line: 'source /etc/network/interfaces.d/*'
+    state: present
+
+- name: Create virbr0.conf in network/interfaces
+  template:
+    src: virbr0.conf.j2
+    dest: /etc/network/interfaces.d/virbr0.conf
+    mode: 0655
+
+- name: "ifup interfaces"
+  command: "ifup virbr0"
+  when: "'virbr0' not in ansible_interfaces"
+

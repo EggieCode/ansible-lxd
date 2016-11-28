@@ -1,0 +1,9 @@
+---
+# defaults file for lxd
+lxd_api_address: "[::]"
+lxd_api_port: 8443
+lxd_api_password: ""
+
+
+virbr0_subnet_ipv4: "192.168.233.0/24"
+virbr0_subnet_ipv6: ''
