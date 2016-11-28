@@ -1,0 +1,18 @@
+auto {{ lxd_subnet_interface }}
+iface {{ lxd_subnet_interface }} inet static
+
+    address   {{ lxd_subnet_ipv4 | ipaddr('address') }}
+    network   {{ lxd_subnet_ipv4 | ipaddr('network') }}
+    netmask   {{ lxd_subnet_ipv4 | ipaddr('netmask') }}
+    broadcast {{ lxd_subnet_ipv4 | ipaddr('broadcast') }}
+    bridge_ports none
+    bridge_stp off
+    bridge_fd 0
+    bridge_waitport 0
+
+{% if lxd_subnet_ipv6 | ipv6('host/prefix') %}
+iface {{ lxd_subnet_interface }} inet6 static
+   address {{ lxd_subnet_ipv6 | ipv6('host') }}
+   netmask {{ lxd_subnet_ipv6 | ipv6('prefix') }}
+{% endif %}
+

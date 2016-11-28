@@ -28,13 +28,13 @@
     line: 'source /etc/network/interfaces.d/*'
     state: present
 
-- name: Create virbr0.conf in network/interfaces
+- name: Create lxd interface in network/interfaces
   template:
-    src: virbr0.conf.j2
-    dest: /etc/network/interfaces.d/virbr0.conf
+    src: lxd_iface.conf.j2
+    dest: /etc/network/interfaces.d/{{ lxd_subnet_interface }}.conf
     mode: 0655
 
 - name: "ifup interfaces"
-  command: "ifup virbr0"
-  when: "'virbr0' not in ansible_interfaces"
+  command: "ifup {{ lxd_subnet_interface }}"
+  when: "lxd_subnet_interface not in ansible_interfaces"
 
