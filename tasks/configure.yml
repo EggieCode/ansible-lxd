@@ -1,12 +1,16 @@
 ---
-#- name: Exec lxd init
-#  shell: "lxd init --auto --network-address='{{ lxd_api_address }}' --network-port={{ lxd_api_port }} --storage-backend=dir --trust-password='{{ lxd_api_password }}' -"
+- name: Get network-address
+  shell: "lxc info | grep core.https_address | cut -c24- | sed 's/.$//g'"
+  register: __lxd_info_http_addr
+
+- debug: "msg={{ __lxd_info_http_addr.stdout | trim }}"
+- debug: "var=lxd_api_address"
+- name: Exec lxd init
+  shell: "lxd init --auto --network-address='{{ lxd_api_address }}' --network-port={{ lxd_api_port }} --storage-backend=dir --trust-password='{{ lxd_api_password }}'"
+  when: "__lxd_info_http_addr.stdout | trim != lxd_api_address ~ ':' ~ lxd_api_port"
 
 - name: disable and stop lxd-bridge
   systemd: state=stopped name=lxd-bridge enabled=false
-
-- name: disable and stop lxc-net
-  systemd: state=stopped name=lxc-net enabled=false
 
 - name: disable lxd-bridge in config
   lineinfile: 'dest=/etc/default/lxd-bridge regexp=^USE_LXD_BRIDGE line=USE_LXD_BRIDGE="false"'
@@ -15,7 +19,7 @@
   lxd_profile:
     name: default
     state: present
-    config: {}
+    config: "{{ lxd_default_profile_config }}"
     devices:
       eth0:
         nictype: bridged

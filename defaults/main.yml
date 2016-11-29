@@ -7,3 +7,4 @@ lxd_api_password: ""
 lxd_subnet_interface: "virbr0"
 lxd_subnet_ipv4: "192.168.233.0/24"
 lxd_subnet_ipv6: ""
+lxd_default_profile_config: {}
