@@ -12,7 +12,7 @@ iface {{ lxd_subnet_interface }} inet static
 
 {% if lxd_subnet_ipv6 | ipv6('host/prefix') %}
 iface {{ lxd_subnet_interface }} inet6 static
-   address {{ lxd_subnet_ipv6 | ipv6('host') }}
+   address {{ lxd_subnet_ipv6 | ipv6('address') }}
    netmask {{ lxd_subnet_ipv6 | ipv6('prefix') }}
 {% endif %}
 

@@ -1,11 +1,6 @@
 ---
-- name: apt update
-  apt: update_cache=yes
-
-- name: apt install lxd
-  apt: name="lxd" state=latest
-
-- name: "apt install bridge-utils"
-  apt: name=bridge-utils state=latest
-
-
+- name: apt install lxd and bridge-utils
+  apt: name="lxd" state=latest update_cache=yes
+  with_items:
+    - lxd
+    - bridge-utils
