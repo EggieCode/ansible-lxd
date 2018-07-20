@@ -1,61 +1,49 @@
 ---
-- name: Exec lxd init
+- name: LXC set core.https_address
   shell: "lxc config set core.https_address {{ lxd_api_address }}:{{ lxd_api_port }}"
 
-- name: LXC set trust-password.
+- name: LXC set trust-password
   shell: "lxc config set core.trust_password {{ lxd_api_password }}"
   no_log: true
-
-- name: Get stat of lxc-net default file
-  stat: path=/etc/default/lxc-net
-  register: __default_lxc_net
-
-- block:
-  - name: Disable lxd-net service
-    systemd: state=stopped name=lxc-net enabled=false
-  - name: Disable lxc-net in default file
-    lineinfile: 'dest=/etc/default/lxc-net regexp=^USE_LXD_BRIDGE line=USE_LXD_BRIDGE="false"'
-  when: __default_lxc_net.stat.exists
-
-- name: Get stat of lxd-bridge default file
-  stat: path=/etc/default/lxd-bridge
-  register: __default_lxd_bridge
-
-- block:
-  - name: disable and stop lxd-bridge
-    systemd: state=stopped name=lxd-bridge enabled=false
-
-  - name: disable lxd-bridge in config
-    lineinfile: 'dest=/etc/default/lxd-bridge regexp=^USE_LXD_BRIDGE line=USE_LXD_BRIDGE="false"'
-  when: __default_lxd_bridge.stat.exists
-
-- name: disable lxd-bridge in config
-  lineinfile: 'dest=/etc/default/lxd-bridge regexp=^USE_LXD_BRIDGE line=USE_LXD_BRIDGE="false"'
 
 - name: setting default profile
   lxd_profile:
     name: default
     state: present
     config: "{{ lxd_default_profile_config }}"
-    devices:
-      eth0:
-        nictype: bridged
-        parent: virbr0
-        type: nic
+    devices: "{{ lxd_default_profile_devices }}"
+
+- name: Generate lxd virbr0 network config file
+  copy: 
+    content: "{{ lxc_network_virbr0_config }}"
+    dest: "/tmp/lxc_network_{{ lxd_subnet_interface }}"
+
+- name: setting default network
+  shell: "lxc network show {{ lxd_subnet_interface }} || lxc network create {{ lxd_subnet_interface }}"
+
+- name: setting default network
+  shell: "cat /tmp/lxc_network_{{ lxd_subnet_interface }} | lxc network edit {{ lxd_subnet_interface }}"
+
+#- name: Delete generated virbr0 network config file
+#  file:
+#    path: /tmp/lxc_network_{{ lxd_subnet_interface }}
+#    state: absent
+
+- name: Stop dnsmasq@virbr0
+  systemd:
+    name: "dnsmasq@{{ lxd_subnet_interface }}"
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+- name: Delete old network/intefaces file 
+  file:
+    path: /etc/network/interfaces.d/virbr0.conf
+    state: absent
 
 - name: Check if interfaces.d is enabled
   lineinfile: 
     dest: /etc/network/interfaces
     line: 'source /etc/network/interfaces.d/*'
     state: present
-
-- name: Create lxd interface in network/interfaces
-  template:
-    src: lxd_iface.conf.j2
-    dest: /etc/network/interfaces.d/{{ lxd_subnet_interface }}.conf
-    mode: 0655
-
-- name: "ifup interfaces"
-  command: "ifup {{ lxd_subnet_interface }}"
-  when: "lxd_subnet_interface not in ansible_interfaces"
 

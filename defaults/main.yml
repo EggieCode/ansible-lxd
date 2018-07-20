@@ -8,3 +8,12 @@ lxd_subnet_interface: "virbr0"
 lxd_subnet_ipv4: "192.168.233.0/24"
 lxd_subnet_ipv6: ""
 lxd_default_profile_config: {}
+lxd_default_profile_devices:
+  eth0:
+    nictype: bridged
+    parent: "{{ lxd_subnet_interface }}"
+    type: nic
+  root:
+    path: /
+    pool: default
+    type: disk

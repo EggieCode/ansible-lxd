@@ -1,6 +1,16 @@
 ---
+- name: Install stable repo
+  apt_repository:
+    repo: 'ppa:ubuntu-lxc/lxd-stable'
+    state: absent
+
 - name: apt install lxd and bridge-utils
-  apt: name="lxd" state=latest update_cache=yes
+  apt: 
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+    default_release: xenial-backports
   with_items:
     - lxd
+    - lxd-client
     - bridge-utils
