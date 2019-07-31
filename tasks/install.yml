@@ -9,7 +9,7 @@
     name: "{{ item }}"
     state: latest
     update_cache: yes
-    default_release: xenial-backports
+    default_release: "{{ ansible_distribution_release }}-backports"
   with_items:
     - lxd
     - lxd-client

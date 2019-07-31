@@ -40,10 +40,12 @@
   file:
     path: /etc/network/interfaces.d/virbr0.conf
     state: absent
+  when: "ansible_distribution_version == '16.04'"
 
 - name: Check if interfaces.d is enabled
   lineinfile: 
     dest: /etc/network/interfaces
     line: 'source /etc/network/interfaces.d/*'
     state: present
+  when: "ansible_distribution_version == '16.04'"
 
